@@ -7,6 +7,7 @@
 import scipy.io
 from scipy import signal as sig
 import numpy as np
+import matplotlib.pyplot as plt
 
 Y = scipy.io.loadmat('orthostaticTest.mat')
 
@@ -36,3 +37,25 @@ for pos in window_pos:
   win_fft = np.fft.fft(RR_segment_norm)
   matrix_pos = int(pos / windows_length)
   matrixFFT[:, matrix_pos] = win_fft.squeeze()
+
+# Frequency and time axis to plot the PSD
+freq_axis = [(k*fs)/windows_length for k in range(matrixFFT.shape[0])]
+# freq_axis = np.fft.fftfreq(int(windows_length), d=1/fs)
+time_axis = Y['timeAxis'][window_pos.astype(int)] + (windows_length / 2) * np.mean(Y['RR'])
+'''
+for i, pos in enumerate(window_pos):
+  end = int(pos) + int(windows_length)
+
+  RR_segment = Y['RR'][int(pos):end]
+  # Normalize values
+  RR_segment_norm = (RR_segment - np.mean(RR_segment)) / np.std(RR_segment)
+  win_fft = np.fft.fft(RR_segment_norm)
+  matrixFFT[:, i] = win_fft
+'''
+plt.figure(figsize=(10, 6))
+plt.imshow(np.abs(matrixFFT[:matrixFFT.shape[0]//2,:])**2, aspect="auto", origin="lower", extent=(time_axis[0], time_axis[-1], freq_axis[0], freq_axis[-1]))
+plt.title('Heatmap of the PSD')
+plt.xlabel('Time')
+plt.ylabel('Frequency')
+plt.colorbar(label='Power Spectral Density')
+plt.show()
